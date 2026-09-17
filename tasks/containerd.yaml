@@ -11,6 +11,7 @@
       - lsb-release
     state: present
     update_cache: yes
+    lock_timeout: 600
   become: true
 
 - name: Ajouter la clé GPG Docker
@@ -31,12 +32,14 @@
 - name: Mettre à jour la liste des paquets
   apt:
     update_cache: yes
+    lock_timeout: 600
   become: true
 
 - name: Installer containerd.io
   apt:
     name: containerd.io
     state: present
+    lock_timeout: 600
   become: true
 
 - name: Générer configuration par défaut de containerd

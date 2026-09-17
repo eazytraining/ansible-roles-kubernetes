@@ -21,6 +21,7 @@
       - socat
     state: present
     update_cache: yes
+    lock_timeout: 600
   become: true
 
 # 🔹 Charger les modules kernel immédiatement
