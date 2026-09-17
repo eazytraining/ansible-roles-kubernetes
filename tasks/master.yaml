@@ -9,11 +9,19 @@
     creates: /etc/kubernetes/admin.conf
   become: true
 
+- name: Créer le répertoire .kube pour root
+  file:
+    path: /root/.kube
+    state: directory
+    mode: '0755'
+  become: true
+
 - name: Copier config kube pour root
-  command: "{{ item }}"
-  with_items:
-    - mkdir -p /root/.kube
-    - cp -i /etc/kubernetes/admin.conf /root/.kube/config
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: true
+    mode: '0644'
   become: true
 
 - name: Créer le répertoire .kube pour vagrant
