@@ -49,3 +49,20 @@
     - kubeadm
     - kubectl
   become: true
+
+# 7️⃣ Forcer kubelet a annoncer l'IP du reseau prive (k8s_interface) plutot
+# que l'IP NAT (identique sur toutes les VM Vagrant), qui casse la
+# communication apiserver -> kubelet entre noeuds (logs/exec notamment)
+- name: Recuperer l'IP de l'interface reseau privee
+  ansible.builtin.setup:
+    filter: "ansible_{{ k8s_interface }}"
+  become: true
+
+- name: Configurer le node-ip de kubelet sur l'interface privee
+  copy:
+    dest: /etc/default/kubelet
+    content: "KUBELET_EXTRA_ARGS=--node-ip={{ hostvars[inventory_hostname]['ansible_' + k8s_interface]['ipv4']['address'] }}\n"
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
