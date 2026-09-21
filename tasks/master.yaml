@@ -58,7 +58,25 @@
 #     state: present
 #     src: https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 
+- name: Télécharger le manifeste Flannel
+  get_url:
+    url: https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+    dest: /tmp/kube-flannel.yml
+    mode: '0644'
+    force: true
+  become: true
+
+# Sans --iface, flannel utilise l'interface de la route par defaut (NAT
+# enp0s3, 10.0.2.15 identique sur chaque VM Vagrant, injoignable entre
+# noeuds) comme extremite du tunnel VXLAN : les pods d'un noeud ne joignent
+# alors pas ceux des autres (CoreDNS sur le master -> DNS KO sur le worker).
+- name: Forcer flannel sur l'interface réseau privée
+  replace:
+    path: /tmp/kube-flannel.yml
+    regexp: '^(\s*)- --kube-subnet-mgr$'
+    replace: '\1- --kube-subnet-mgr\n\1- --iface={{ k8s_interface }}'
+  become: true
+
 - name: Installer CNI Flannel avec kubectl
-  command: >
-    kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+  command: kubectl apply -f /tmp/kube-flannel.yml
   become: true
