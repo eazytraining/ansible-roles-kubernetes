@@ -58,6 +58,23 @@
 #     state: present
 #     src: https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 
+# Sur cette topologie Vagrant a deux interfaces, une connexion locale vers
+# une IP de Service (ex: 10.96.0.1) peut repartir avec l'IP de l'interface
+# NAT comme source (le noyau choisit la source avant que le DNAT ne
+# s'applique, car la destination d'origine ne correspond a aucune route
+# specifique). Le noeud distant rejette alors ce paquet source incoherente
+# avec sa table de routage : plus aucun trafic vers les IP de Service ne
+# passe (Flannel, CoreDNS, etc. restent bloques en CrashLoopBackOff).
+# masqueradeAll force kube-proxy a toujours reecrire la source avec la
+# bonne IP de sortie.
+- name: Activer masqueradeAll sur kube-proxy
+  shell: |
+    kubectl get cm kube-proxy -n kube-system -o yaml | sed 's/masqueradeAll: false/masqueradeAll: true/' | kubectl apply -f -
+    kubectl delete pod -n kube-system -l k8s-app=kube-proxy --ignore-not-found
+  environment:
+    KUBECONFIG: /root/.kube/config
+  become: true
+
 - name: Télécharger le manifeste Flannel
   get_url:
     url: https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
