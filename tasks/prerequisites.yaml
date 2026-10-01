@@ -19,6 +19,7 @@
       - gpg
       - conntrack
       - socat
+      - nfs-common
     state: present
     update_cache: yes
     lock_timeout: 600
