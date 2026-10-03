@@ -9,11 +9,14 @@
     creates: /etc/kubernetes/admin.conf
   become: true
 
+# Le kubeconfig admin n'est installe que pour root : l'utilisateur vagrant
+# n'a volontairement aucun acces au cluster par defaut (les labs RBAC lui
+# creent un kubeconfig avec des droits limites).
 - name: Créer le répertoire .kube pour root
   file:
     path: /root/.kube
     state: directory
-    mode: '0755'
+    mode: '0700'
   become: true
 
 - name: Copier config kube pour root
@@ -21,25 +24,7 @@
     src: /etc/kubernetes/admin.conf
     dest: /root/.kube/config
     remote_src: true
-    mode: '0644'
-  become: true
-
-- name: Créer le répertoire .kube pour vagrant
-  file:
-    path: /home/vagrant/.kube
-    state: directory
-    owner: vagrant
-    group: vagrant
-    mode: '0755'
-  become: true
-
-- name: Copier config kube pour vagrant
-  copy:
-    src: /etc/kubernetes/admin.conf
-    dest: /home/vagrant/.kube/config
-    owner: vagrant
-    group: vagrant
-    mode: '0644'
+    mode: '0600'
   become: true
 
 - name: Générer la commande join
